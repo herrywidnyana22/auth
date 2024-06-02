@@ -10,20 +10,45 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { ErrorMessage } from "./form-message";
+import { useState } from "react";
+import { signup } from "@/actions/signup";
+import { CgSpinner } from "react-icons/cg";
 
 
 export const SignupForm = () => {
 
+    const [success, setSuccess] = useState<string | undefined>()
+    const [error, setError] = useState<string | undefined>()
+    const [isPending, setIsPending] = useState<boolean>(false)
+
     const initForm = useForm<z.infer<typeof SignupSchema>>({
         resolver: zodResolver(SignupSchema),
         defaultValues: {
+            name:"",
             email: "",
             password: ""
         }
     })
 
-    const onSubmit = (values: z.infer<typeof SignupSchema>) =>{
-        
+    const onSubmit = async(values: z.infer<typeof SignupSchema>) =>{
+        setSuccess("")
+        setError("")
+        setIsPending(true)
+
+        try {
+            const createUser = await signup(values)
+            setSuccess(createUser.success)
+            setError(createUser.error)
+
+            if (createUser.success) {
+                initForm.reset()
+            }
+
+        } catch (error) {
+            setError("Something error")
+        } finally{
+            setIsPending(false)
+        }
     }
 
     return ( 
@@ -33,6 +58,7 @@ export const SignupForm = () => {
             backButtonHref="/auth/signin"
             showSocial
         >
+            
             <Form {...initForm}>
                 <form
                     onSubmit={initForm.handleSubmit(onSubmit)}
@@ -46,6 +72,7 @@ export const SignupForm = () => {
                         <FormField
                             control={initForm.control}
                             name="name"
+                            disabled={isPending}
                             render={({field}) => (
                                 <FormItem>
                                     <FormLabel>
@@ -65,6 +92,7 @@ export const SignupForm = () => {
                         <FormField
                             control={initForm.control}
                             name="email"
+                            disabled={isPending}
                             render={({field}) => (
                                 <FormItem>
                                     <FormLabel>
@@ -84,6 +112,7 @@ export const SignupForm = () => {
                         <FormField
                             control={initForm.control}
                             name="password"
+                            disabled={isPending}
                             render={({field}) => (
                                 <FormItem>
                                     <FormLabel>
@@ -102,14 +131,21 @@ export const SignupForm = () => {
                         />
                     </div>
                     <ErrorMessage
-                        type={"error"} 
-                        message="Something went wrong"
+                        type={error=="" || error===undefined ? "success" : "error"} 
+                        message={error=="" || error===undefined ? success : error } 
                     />
                     <Button
                         type="submit"
                         className="w-full"
+                        disabled={isPending}
                     >
-                        Create an account
+                        {
+                            isPending 
+                            ? <CgSpinner className="w-5 h-5 animate-spin"/>
+                            : "Create an account"
+                        }
+                        
+                        
                     </Button>
                 </form>
             </Form>

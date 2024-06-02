@@ -1,7 +1,6 @@
 'use client'
 
-import * as z from "zod"
-
+import { z } from "zod"
 import { useForm } from "react-hook-form";
 import { CardWrapper } from "./card-wrapper";
 import { SigninSchema } from "@/schema";
@@ -10,9 +9,15 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { ErrorMessage } from "./form-message";
+import { signin } from "@/actions/signin";
+import { useState } from "react";
+import { CgSpinner } from "react-icons/cg";
 
 
 export const SigninForm = () => {
+
+    const [error, setError] = useState<string | undefined>()
+    const [isPending, setIsPending] = useState<boolean>(false)
 
     const initForm = useForm<z.infer<typeof SigninSchema>>({
         resolver: zodResolver(SigninSchema),
@@ -22,8 +27,17 @@ export const SigninForm = () => {
         }
     })
 
-    const onSubmit = (values: z.infer<typeof SigninSchema>) =>{
-        
+    const onSubmit = async(values: z.infer<typeof SigninSchema>) =>{
+        setIsPending(true)
+        try {
+            const login = await signin(values)
+            setError(login?.error)
+
+        } catch (error) {
+            setError("Something error")
+        } finally{
+            setIsPending(false)
+        }
     }
 
     return ( 
@@ -46,6 +60,7 @@ export const SigninForm = () => {
                         <FormField
                             control={initForm.control}
                             name="email"
+                            disabled={isPending}
                             render={({field}) => (
                                 <FormItem>
                                     <FormLabel>
@@ -65,6 +80,7 @@ export const SigninForm = () => {
                         <FormField
                             control={initForm.control}
                             name="password"
+                            disabled={isPending}
                             render={({field}) => (
                                 <FormItem>
                                     <FormLabel>
@@ -84,13 +100,17 @@ export const SigninForm = () => {
                     </div>
                     <ErrorMessage
                         type={"error"} 
-                        message="Something went wrong"
+                        message={ error } 
                     />
                     <Button
                         type="submit"
                         className="w-full"
                     >
-                        Sign In
+                        {
+                            isPending 
+                            ? <CgSpinner className="w-5 h-5 animate-spin"/>
+                            : "Sign In"
+                        }
                     </Button>
                 </form>
             </Form>

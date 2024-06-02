@@ -3,12 +3,18 @@
 import { FcGoogle } from "react-icons/fc";
 import { Button } from "../ui/button";
 import { FaGithub } from "react-icons/fa6";
+import { signIn } from "next-auth/react";
+import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 
-type SocialProps = {
- 
-}
 
-export const Social = ({}: SocialProps) => {
+export const Social = () => {
+    
+    const socialClick=(provider: "google" | "github")=>{
+        signIn(provider, {
+            callbackUrl: DEFAULT_LOGIN_REDIRECT
+        })
+    }
+
     return ( 
         <div
             className="
@@ -19,7 +25,7 @@ export const Social = ({}: SocialProps) => {
             "
         >
             <Button
-                onClick={() => {}}
+                onClick={() => socialClick("google")}
                 size={"lg"}
                 variant={"outline"}
                 className="w-full"
@@ -32,7 +38,7 @@ export const Social = ({}: SocialProps) => {
                 />
             </Button>
             <Button
-                onClick={() => {}}
+                onClick={() => socialClick("github")}
                 size={"lg"}
                 variant={"outline"}
                 className="w-full"
